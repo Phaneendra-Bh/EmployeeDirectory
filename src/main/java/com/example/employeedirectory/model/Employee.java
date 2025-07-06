@@ -1,4 +1,4 @@
-package com.example.employeedirectory;
+package com.example.employeedirectory.model;
 
 /**
  * Represents an employee record from the CSV file.

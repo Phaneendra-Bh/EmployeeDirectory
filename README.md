@@ -10,8 +10,9 @@ src/
 │   └── java/
 │       └── com/example/employeedirectory/
 │           ├── Main.java
-│           ├── Employee.java
-│           └── CSVReader.java
+│           ├── CSVReader.java
+│           └── model/
+│               └── Employee.java
 └── test/
     └── java/
 ```

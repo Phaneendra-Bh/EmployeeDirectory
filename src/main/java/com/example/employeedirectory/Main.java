@@ -1,5 +1,6 @@
 package com.example.employeedirectory;
 
+import com.example.employeedirectory.model.Employee;
 import java.io.IOException;
 import java.util.List;
 

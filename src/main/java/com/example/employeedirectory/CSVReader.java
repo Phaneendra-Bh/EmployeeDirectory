@@ -1,5 +1,6 @@
 package com.example.employeedirectory;
 
+import com.example.employeedirectory.model.Employee;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -30,13 +31,9 @@ public class CSVReader {
             // Read data lines
             while ((line = reader.readLine()) != null) {
                 if (!line.trim().isEmpty()) {
-                    System.out.println("Processing line: '" + line + "'");
                     Employee employee = parseEmployeeLine(line);
                     if (employee != null) {
                         employees.add(employee);
-                        System.out.println("Added employee: " + employee);
-                    } else {
-                        System.out.println("Failed to parse line: " + line);
                     }
                 }
             }
@@ -54,7 +51,6 @@ public class CSVReader {
         try {
             // Split by comma and include empty strings
             String[] parts = line.split(",", -1);
-            System.out.println("Split parts: " + java.util.Arrays.toString(parts));
             
             if (parts.length != 5) {
                 System.err.println("Invalid line format: " + line + " (expected 5 parts, got " + parts.length + ")");
