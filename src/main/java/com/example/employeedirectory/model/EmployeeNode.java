@@ -46,19 +46,6 @@ public class EmployeeNode {
     }
     
     /**
-     * Removes a child from this node.
-     * @param child the child node to remove
-     * @return true if the child was found and removed, false otherwise
-     */
-    public boolean removeChild(EmployeeNode child) {
-        if (child != null && children.remove(child)) {
-            child.setParent(null);
-            return true;
-        }
-        return false;
-    }
-    
-    /**
      * Checks if this node is a root node (has no parent).
      * @return true if this is a root node, false otherwise
      */
@@ -83,14 +70,6 @@ public class EmployeeNode {
             return 0;
         }
         return parent.getDepth() + 1;
-    }
-    
-    /**
-     * Gets the number of children this node has.
-     * @return the number of children
-     */
-    public int getChildCount() {
-        return children.size();
     }
     
     @Override

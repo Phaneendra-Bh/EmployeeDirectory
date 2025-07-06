@@ -7,6 +7,7 @@ import java.util.*;
 
 /**
  * Represents a tree structure of employees with bidirectional parent-child relationships.
+ * This class focuses only on tree structure and navigation, not business logic.
  */
 public class EmployeeTree {
     private List<EmployeeNode> rootNodes;
@@ -52,80 +53,6 @@ public class EmployeeTree {
                 }
             }
         }
-    }
-    
-    /**
-     * Validates salary requirements for all managers.
-     * Managers should earn at least 20% more than average salary of direct subordinates,
-     * but not more than 50% more than average salary of direct subordinates.
-     */
-    public void validateManagerSalaries() {
-        System.out.println("Salary Validation Results:");
-        System.out.println("=========================");
-        
-        int underpaidCount = 0;
-        int overpaidCount = 0;
-        
-        for (EmployeeNode node : employeeNodeMap.values()) {
-            if (!node.isLeaf()) { // Only check managers (nodes with children)
-                List<EmployeeNode> directReports = node.getChildren();
-                if (!directReports.isEmpty()) {
-                    double averageSubordinateSalary = calculateAverageSalary(directReports);
-                    double managerSalary = node.getEmployee().getSalary();
-                    
-                    double minRequiredSalary = averageSubordinateSalary * 1.20; // 20% more
-                    double maxAllowedSalary = averageSubordinateSalary * 1.50; // 50% more
-                    
-                    if (managerSalary < minRequiredSalary) {
-                        underpaidCount++;
-                        Employee manager = node.getEmployee();
-                        double shortfall = minRequiredSalary - managerSalary;
-                        
-                        System.out.println("❌ UNDERPAID: " + manager.getFirstName() + " " + manager.getLastName() + " (ID: " + manager.getId() + ")");
-                        System.out.println("   Manager Salary: $" + String.format("%.2f", managerSalary));
-                        System.out.println("   Minimum Required: $" + String.format("%.2f", minRequiredSalary));
-                        System.out.println("   Shortfall: $" + String.format("%.2f", shortfall));
-                        System.out.println();
-                    } else if (managerSalary > maxAllowedSalary) {
-                        overpaidCount++;
-                        Employee manager = node.getEmployee();
-                        double excess = managerSalary - maxAllowedSalary;
-                        
-                        System.out.println("❌ OVERPAID: " + manager.getFirstName() + " " + manager.getLastName() + " (ID: " + manager.getId() + ")");
-                        System.out.println("   Manager Salary: $" + String.format("%.2f", managerSalary));
-                        System.out.println("   Maximum Allowed: $" + String.format("%.2f", maxAllowedSalary));
-                        System.out.println("   Excess: $" + String.format("%.2f", excess));
-                        System.out.println();
-                    }
-                }
-            }
-        }
-        
-        System.out.println("Summary:");
-        System.out.println("  Underpaid managers: " + underpaidCount);
-        System.out.println("  Overpaid managers: " + overpaidCount);
-        
-        if (underpaidCount == 0 && overpaidCount == 0) {
-            System.out.println("✅ All managers meet the salary requirements!");
-        }
-    }
-    
-    /**
-     * Calculates the average salary of a list of employee nodes.
-     * @param nodes the list of employee nodes
-     * @return the average salary
-     */
-    private double calculateAverageSalary(List<EmployeeNode> nodes) {
-        if (nodes.isEmpty()) {
-            return 0.0;
-        }
-        
-        double totalSalary = 0.0;
-        for (EmployeeNode node : nodes) {
-            totalSalary += node.getEmployee().getSalary();
-        }
-        
-        return totalSalary / nodes.size();
     }
     
     /**
@@ -247,36 +174,6 @@ public class EmployeeTree {
         for (EmployeeNode child : node.getChildren()) {
             subordinates.add(child);
             collectSubordinates(child, subordinates);
-        }
-    }
-    
-    /**
-     * Prints all employees who have more than 4 managers between them and the CEO (root node).
-     */
-    public void printEmployeesWithMoreThan4Managers() {
-        System.out.println("Employees with reporting lines too long (>4 levels):");
-        System.out.println("===================================================");
-        
-        int tooDeepCount = 0;
-        for (EmployeeNode node : employeeNodeMap.values()) {
-            int depth = node.getDepth();
-            if (depth > 4) {
-                tooDeepCount++;
-                Employee emp = node.getEmployee();
-                int levelsTooDeep = depth - 4;
-                
-                System.out.println("❌ TOO DEEP: " + emp.getFirstName() + " " + emp.getLastName() + " (ID: " + emp.getId() + ")");
-                System.out.println("   Current Depth: " + depth + " levels");
-                System.out.println("   Levels too deep: " + levelsTooDeep);
-                System.out.println();
-            }
-        }
-        
-        System.out.println("Summary:");
-        System.out.println("  Employees with too long reporting lines: " + tooDeepCount);
-        
-        if (tooDeepCount == 0) {
-            System.out.println("✅ All employees have acceptable reporting line lengths!");
         }
     }
 } 

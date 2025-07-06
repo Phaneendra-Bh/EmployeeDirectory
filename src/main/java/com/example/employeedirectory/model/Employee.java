@@ -25,13 +25,6 @@ public class Employee {
     public double getSalary() { return salary; }
     public String getManagerId() { return managerId; }
 
-    // Setters
-    public void setId(String id) { this.id = id; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-    public void setSalary(double salary) { this.salary = salary; }
-    public void setManagerId(String managerId) { this.managerId = managerId; }
-
     @Override
     public String toString() {
         return "Employee{" +

@@ -2,6 +2,7 @@ package com.example.employeedirectory;
 
 import com.example.employeedirectory.model.Employee;
 import com.example.employeedirectory.model.EmployeeNode;
+import com.example.employeedirectory.service.ValidationReportService;
 import java.io.IOException;
 import java.util.List;
 
@@ -48,13 +49,10 @@ public class Main {
             // Print the tree structure
             employeeTree.printTree();
             
-            // Validate manager salaries
+            // Generate validation report using the new service
             System.out.println("\n" + "=".repeat(50) + "\n");
-            employeeTree.validateManagerSalaries();
-
-            // Print employees with more than 4 managers between them and the CEO
-            System.out.println("\n" + "=".repeat(50) + "\n");
-            employeeTree.printEmployeesWithMoreThan4Managers();
+            ValidationReportService reportService = new ValidationReportService();
+            reportService.generateValidationReport(employeeTree.getAllNodes());
             
             // Demonstrate some tree operations
             System.out.println("\n" + "=".repeat(50) + "\n");
@@ -75,6 +73,13 @@ public class Main {
             for (EmployeeNode subordinate : joeAllSubordinates) {
                 Employee emp = subordinate.getEmployee();
                 System.out.println("  - " + emp.getFirstName() + " " + emp.getLastName() + " (ID: " + emp.getId() + ")");
+            }
+            
+            // Example: Show detailed validation for a specific employee
+            System.out.println("\n" + "=".repeat(50) + "\n");
+            EmployeeNode martinNode = employeeTree.getNodeById("124");
+            if (martinNode != null) {
+                reportService.displayEmployeeValidationDetails(martinNode);
             }
             
         } catch (IOException e) {
