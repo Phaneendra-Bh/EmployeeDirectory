@@ -55,6 +55,70 @@ public class EmployeeTree {
     }
     
     /**
+     * Validates salary requirements for all managers.
+     * Managers should earn at least 20% more than average salary of direct subordinates,
+     * but not more than 50% more than average salary of direct subordinates.
+     */
+    public void validateManagerSalaries() {
+        System.out.println("Salary Validation Results:");
+        System.out.println("=========================");
+        
+        boolean hasViolations = false;
+        
+        for (EmployeeNode node : employeeNodeMap.values()) {
+            if (!node.isLeaf()) { // Only check managers (nodes with children)
+                List<EmployeeNode> directReports = node.getChildren();
+                if (!directReports.isEmpty()) {
+                    double averageSubordinateSalary = calculateAverageSalary(directReports);
+                    double managerSalary = node.getEmployee().getSalary();
+                    
+                    double minRequiredSalary = averageSubordinateSalary * 1.20; // 20% more
+                    double maxAllowedSalary = averageSubordinateSalary * 1.50; // 50% more
+                    
+                    if (managerSalary < minRequiredSalary || managerSalary > maxAllowedSalary) {
+                        hasViolations = true;
+                        Employee manager = node.getEmployee();
+                        
+                        System.out.println("❌ VIOLATION: " + manager.getFirstName() + " " + manager.getLastName() + " (ID: " + manager.getId() + ")");
+                        System.out.println("   Manager Salary: $" + String.format("%.2f", managerSalary));
+                        System.out.println("   Average Subordinate Salary: $" + String.format("%.2f", averageSubordinateSalary));
+                        System.out.println("   Required Range: $" + String.format("%.2f", minRequiredSalary) + " - $" + String.format("%.2f", maxAllowedSalary));
+                        
+                        System.out.println("   Direct Reports:");
+                        for (EmployeeNode report : directReports) {
+                            Employee emp = report.getEmployee();
+                            System.out.println("     - " + emp.getFirstName() + " " + emp.getLastName() + " (ID: " + emp.getId() + ", Salary: $" + emp.getSalary() + ")");
+                        }
+                        System.out.println();
+                    }
+                }
+            }
+        }
+        
+        if (!hasViolations) {
+            System.out.println("✅ All managers meet the salary requirements!");
+        }
+    }
+    
+    /**
+     * Calculates the average salary of a list of employee nodes.
+     * @param nodes the list of employee nodes
+     * @return the average salary
+     */
+    private double calculateAverageSalary(List<EmployeeNode> nodes) {
+        if (nodes.isEmpty()) {
+            return 0.0;
+        }
+        
+        double totalSalary = 0.0;
+        for (EmployeeNode node : nodes) {
+            totalSalary += node.getEmployee().getSalary();
+        }
+        
+        return totalSalary / nodes.size();
+    }
+    
+    /**
      * Gets all root nodes (employees with no manager).
      * @return list of root nodes
      */
@@ -174,5 +238,26 @@ public class EmployeeTree {
             subordinates.add(child);
             collectSubordinates(child, subordinates);
         }
+    }
+    
+    /**
+     * Prints all employees who have more than 4 managers between them and the CEO (root node).
+     */
+    public void printEmployeesWithMoreThan4Managers() {
+        System.out.println("Employees with more than 4 managers between them and the CEO:");
+        System.out.println("============================================================");
+        boolean found = false;
+        for (EmployeeNode node : employeeNodeMap.values()) {
+            int depth = node.getDepth();
+            if (depth > 4) {
+                Employee emp = node.getEmployee();
+                found = true;
+                System.out.println(emp.getFirstName() + " " + emp.getLastName() + " (ID: " + emp.getId() + ", Depth: " + depth + ")");
+            }
+        }
+        if (!found) {
+            System.out.println("No employees have more than 4 managers between them and the CEO.");
+        }
+        System.out.println();
     }
 } 

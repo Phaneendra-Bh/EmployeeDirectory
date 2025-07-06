@@ -48,6 +48,14 @@ public class Main {
             // Print the tree structure
             employeeTree.printTree();
             
+            // Validate manager salaries
+            System.out.println("\n" + "=".repeat(50) + "\n");
+            employeeTree.validateManagerSalaries();
+
+            // Print employees with more than 4 managers between them and the CEO
+            System.out.println("\n" + "=".repeat(50) + "\n");
+            employeeTree.printEmployeesWithMoreThan4Managers();
+            
             // Demonstrate some tree operations
             System.out.println("\n" + "=".repeat(50) + "\n");
             System.out.println("Tree Operations Examples:");
