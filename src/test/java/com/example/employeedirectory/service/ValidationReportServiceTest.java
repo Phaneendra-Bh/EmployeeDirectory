@@ -1,0 +1,323 @@
+package com.example.employeedirectory.service;
+
+import com.example.employeedirectory.model.Employee;
+import com.example.employeedirectory.model.EmployeeNode;
+import com.example.employeedirectory.validation.EmployeeValidator;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class ValidationReportServiceTest {
+
+    private ValidationReportService reportService;
+    private ByteArrayOutputStream outputStream;
+    private PrintStream originalOut;
+
+    @BeforeEach
+    void setUp() {
+        reportService = new ValidationReportService();
+        outputStream = new ByteArrayOutputStream();
+        originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+    }
+
+    // Utility to clear output before each test
+    void clearOutput() {
+        outputStream.reset();
+    }
+
+    @Test
+    void testGenerateValidationReport_NoViolations() {
+        clearOutput();
+        // Arrange
+        Employee manager = new Employee("1", "John", "Manager", 60000.0, null);
+        Employee subordinate1 = new Employee("2", "Alice", "Sub", 40000.0, "1");
+        Employee subordinate2 = new Employee("3", "Bob", "Sub", 50000.0, "1");
+        
+        EmployeeNode managerNode = new EmployeeNode(manager);
+        EmployeeNode sub1Node = new EmployeeNode(subordinate1);
+        EmployeeNode sub2Node = new EmployeeNode(subordinate2);
+        
+        managerNode.addChild(sub1Node);
+        managerNode.addChild(sub2Node);
+        
+        List<EmployeeNode> allNodes = Arrays.asList(managerNode, sub1Node, sub2Node);
+
+        // Act
+        reportService.generateValidationReport(allNodes);
+
+        // Assert
+        String output = outputStream.toString();
+        assertTrue(output.contains("Validation Report"));
+        assertTrue(output.contains("All managers meet the salary requirements"));
+        assertTrue(output.contains("All employees have acceptable reporting line lengths"));
+    }
+
+    @Test
+    void testGenerateValidationReport_WithSalaryViolations() {
+        clearOutput();
+        // Arrange
+        Employee manager = new Employee("1", "John", "Manager", 50000.0, null);
+        Employee subordinate1 = new Employee("2", "Alice", "Sub", 40000.0, "1");
+        Employee subordinate2 = new Employee("3", "Bob", "Sub", 50000.0, "1");
+        
+        EmployeeNode managerNode = new EmployeeNode(manager);
+        EmployeeNode sub1Node = new EmployeeNode(subordinate1);
+        EmployeeNode sub2Node = new EmployeeNode(subordinate2);
+        
+        managerNode.addChild(sub1Node);
+        managerNode.addChild(sub2Node);
+        
+        List<EmployeeNode> allNodes = Arrays.asList(managerNode, sub1Node, sub2Node);
+
+        // Act
+        reportService.generateValidationReport(allNodes);
+
+        // Assert
+        String output = outputStream.toString();
+        assertTrue(output.contains("❌ UNDERPAID"));
+        assertTrue(output.contains("Shortfall: $4000.00"));
+        assertTrue(output.contains("Underpaid managers: 1"));
+        assertTrue(output.contains("Overpaid managers: 0"));
+    }
+
+    @Test
+    void testGenerateValidationReport_WithDepthViolations() {
+        clearOutput();
+        // Arrange
+        Employee employee1 = new Employee("1", "Level1", "Manager", 60000.0, null);
+        Employee employee2 = new Employee("2", "Level2", "Manager", 70000.0, "1");
+        Employee employee3 = new Employee("3", "Level3", "Manager", 80000.0, "2");
+        Employee employee4 = new Employee("4", "Level4", "Manager", 90000.0, "3");
+        Employee employee5 = new Employee("5", "Level5", "Manager", 100000.0, "4");
+        Employee employee6 = new Employee("6", "Level6", "Employee", 50000.0, "5");
+        
+        EmployeeNode node1 = new EmployeeNode(employee1);
+        EmployeeNode node2 = new EmployeeNode(employee2);
+        EmployeeNode node3 = new EmployeeNode(employee3);
+        EmployeeNode node4 = new EmployeeNode(employee4);
+        EmployeeNode node5 = new EmployeeNode(employee5);
+        EmployeeNode node6 = new EmployeeNode(employee6);
+        
+        node1.addChild(node2);
+        node2.addChild(node3);
+        node3.addChild(node4);
+        node4.addChild(node5);
+        node5.addChild(node6);
+        
+        List<EmployeeNode> allNodes = Arrays.asList(node1, node2, node3, node4, node5, node6);
+
+        // Act
+        reportService.generateValidationReport(allNodes);
+
+        // Assert
+        String output = outputStream.toString();
+        if (!output.contains("❌ TOO DEEP")) {
+            fail("Output did not contain expected '❌ TOO DEEP' line. Actual output:\n" + output);
+        }
+        assertTrue(output.contains("❌ UNDERPAID"));
+        assertTrue(output.contains("❌ OVERPAID"));
+        assertTrue(output.contains("❌ TOO DEEP"));
+        assertTrue(output.contains("Levels too deep: 1"));
+        assertTrue(output.contains("Employees with too long reporting lines: 1"));
+    }
+
+    @Test
+    void testDisplayEmployeeValidationDetails_ManagerWithViolations() {
+        clearOutput();
+        // Arrange
+        Employee manager = new Employee("1", "John", "Manager", 50000.0, null);
+        Employee subordinate1 = new Employee("2", "Alice", "Sub", 40000.0, "1");
+        Employee subordinate2 = new Employee("3", "Bob", "Sub", 50000.0, "1");
+        
+        EmployeeNode managerNode = new EmployeeNode(manager);
+        EmployeeNode sub1Node = new EmployeeNode(subordinate1);
+        EmployeeNode sub2Node = new EmployeeNode(subordinate2);
+        
+        managerNode.addChild(sub1Node);
+        managerNode.addChild(sub2Node);
+
+        // Act
+        reportService.displayEmployeeValidationDetails(managerNode);
+
+        // Assert
+        String output = outputStream.toString();
+        assertTrue(output.contains("Validation Details for John Manager (ID: 1)"));
+        assertTrue(output.contains("Manager Validation:"));
+        assertTrue(output.contains("❌ Minimum salary violation: $4000.00 shortfall"));
+        assertTrue(output.contains("✅ Maximum salary requirement met"));
+        assertTrue(output.contains("✅ Reporting depth acceptable"));
+    }
+
+    @Test
+    void testDisplayEmployeeValidationDetails_NonManager() {
+        clearOutput();
+        // Arrange
+        Employee employee = new Employee("1", "John", "Employee", 50000.0, null);
+        EmployeeNode employeeNode = new EmployeeNode(employee);
+
+        // Act
+        reportService.displayEmployeeValidationDetails(employeeNode);
+
+        // Assert
+        String output = outputStream.toString();
+        assertTrue(output.contains("Validation Details for John Employee (ID: 1)"));
+        assertFalse(output.contains("Manager Validation:"));
+        assertTrue(output.contains("✅ Reporting depth acceptable"));
+    }
+
+    @Test
+    void testDisplayEmployeeValidationDetails_ManagerWithOverpaidViolation() {
+        clearOutput();
+        // Arrange
+        Employee manager = new Employee("1", "John", "Manager", 80000.0, null);
+        Employee subordinate1 = new Employee("2", "Alice", "Sub", 40000.0, "1");
+        Employee subordinate2 = new Employee("3", "Bob", "Sub", 50000.0, "1");
+        
+        EmployeeNode managerNode = new EmployeeNode(manager);
+        EmployeeNode sub1Node = new EmployeeNode(subordinate1);
+        EmployeeNode sub2Node = new EmployeeNode(subordinate2);
+        
+        managerNode.addChild(sub1Node);
+        managerNode.addChild(sub2Node);
+
+        // Act
+        reportService.displayEmployeeValidationDetails(managerNode);
+
+        // Assert
+        String output = outputStream.toString();
+        assertTrue(output.contains("Validation Details for John Manager (ID: 1)"));
+        assertTrue(output.contains("Manager Validation:"));
+        assertTrue(output.contains("✅ Minimum salary requirement met"));
+        assertTrue(output.contains("❌ Maximum salary violation: $12500.00 excess"));
+        assertTrue(output.contains("✅ Reporting depth acceptable"));
+    }
+
+    @Test
+    void testDisplayEmployeeValidationDetails_EmployeeWithDepthViolation() {
+        clearOutput();
+        // Arrange
+        Employee employee = new Employee("1", "John", "Employee", 50000.0, null);
+        EmployeeNode employeeNode = new EmployeeNode(employee);
+        
+        // Create a deep hierarchy to make this employee too deep
+        EmployeeNode level1 = new EmployeeNode(new Employee("2", "Level1", "Manager", 60000.0, null));
+        EmployeeNode level2 = new EmployeeNode(new Employee("3", "Level2", "Manager", 70000.0, null));
+        EmployeeNode level3 = new EmployeeNode(new Employee("4", "Level3", "Manager", 80000.0, null));
+        EmployeeNode level4 = new EmployeeNode(new Employee("5", "Level4", "Manager", 90000.0, null));
+        EmployeeNode level5 = new EmployeeNode(new Employee("6", "Level5", "Manager", 100000.0, null));
+        
+        level1.addChild(level2);
+        level2.addChild(level3);
+        level3.addChild(level4);
+        level4.addChild(level5);
+        level5.addChild(employeeNode);
+
+        // Act
+        reportService.displayEmployeeValidationDetails(employeeNode);
+
+        // Assert
+        String output = outputStream.toString();
+        assertTrue(output.contains("Validation Details for John Employee (ID: 1)"));
+        assertTrue(output.contains("❌ Reporting depth violation: 1 levels too deep"));
+    }
+
+    @Test
+    void testDisplayEmployeeValidationDetails_ManagerWithNoDirectReports() {
+        clearOutput();
+        // Arrange
+        Employee manager = new Employee("1", "John", "Manager", 60000.0, null);
+        EmployeeNode managerNode = new EmployeeNode(manager);
+
+        // Act
+        reportService.displayEmployeeValidationDetails(managerNode);
+
+        // Assert
+        String output = outputStream.toString();
+        assertTrue(output.contains("Validation Details for John Manager (ID: 1)"));
+        assertTrue(output.contains("✅ Reporting depth acceptable"));
+        // Should not show manager validation since there are no direct reports
+    }
+
+    @Test
+    void testGenerateValidationReport_EmptyList() {
+        clearOutput();
+        // Arrange
+        List<EmployeeNode> emptyList = Collections.emptyList();
+
+        // Act
+        reportService.generateValidationReport(emptyList);
+
+        // Assert
+        String output = outputStream.toString();
+        assertTrue(output.contains("Validation Report"));
+        assertTrue(output.contains("All managers meet the salary requirements"));
+        assertTrue(output.contains("All employees have acceptable reporting line lengths"));
+    }
+
+    @Test
+    void testGenerateValidationReport_MixedViolations() {
+        clearOutput();
+        // Arrange
+        // Create a manager who is underpaid
+        Employee manager1 = new Employee("1", "John", "Manager", 50000.0, null);
+        Employee sub1 = new Employee("2", "Alice", "Sub", 40000.0, "1");
+        EmployeeNode manager1Node = new EmployeeNode(manager1);
+        EmployeeNode sub1Node = new EmployeeNode(sub1);
+        manager1Node.addChild(sub1Node);
+        
+        // Create a manager who is overpaid
+        Employee manager2 = new Employee("3", "Jane", "Manager", 80000.0, null);
+        Employee sub2 = new Employee("4", "Bob", "Sub", 40000.0, "3");
+        EmployeeNode manager2Node = new EmployeeNode(manager2);
+        EmployeeNode sub2Node = new EmployeeNode(sub2);
+        manager2Node.addChild(sub2Node);
+        
+        // Create a deep hierarchy for depth violation
+        Employee deepEmployee = new Employee("5", "Deep", "Employee", 50000.0, null);
+        EmployeeNode deepNode = new EmployeeNode(deepEmployee);
+        EmployeeNode level1 = new EmployeeNode(new Employee("6", "Level1", "Manager", 60000.0, null));
+        EmployeeNode level2 = new EmployeeNode(new Employee("7", "Level2", "Manager", 70000.0, null));
+        EmployeeNode level3 = new EmployeeNode(new Employee("8", "Level3", "Manager", 80000.0, null));
+        EmployeeNode level4 = new EmployeeNode(new Employee("9", "Level4", "Manager", 90000.0, null));
+        EmployeeNode level5 = new EmployeeNode(new Employee("10", "Level5", "Manager", 100000.0, null));
+        
+        level1.addChild(level2);
+        level2.addChild(level3);
+        level3.addChild(level4);
+        level4.addChild(level5);
+        level5.addChild(deepNode);
+        
+        List<EmployeeNode> allNodes = Arrays.asList(
+            manager1Node, sub1Node, manager2Node, sub2Node,
+            level1, level2, level3, level4, level5, deepNode
+        );
+
+        // Act
+        reportService.generateValidationReport(allNodes);
+
+        // Assert
+        String output = outputStream.toString();
+        System.err.println("\n--- DEBUG OUTPUT ---\n" + output + "\n--- END DEBUG OUTPUT ---\n");
+        if (!output.contains("❌ TOO DEEP")) {
+            fail("Output did not contain expected '❌ TOO DEEP' line. Actual output:\n" + output);
+        }
+        assertTrue(output.contains("❌ UNDERPAID"));
+        assertTrue(output.contains("❌ OVERPAID"));
+        assertTrue(output.contains("❌ TOO DEEP"));
+        assertTrue(output.contains("Levels too deep: 1"));
+        assertTrue(output.contains("Employees with too long reporting lines: 1"));
+    }
+
+    @Test
+    void tearDown() {
+        System.setOut(originalOut);
+    }
+} 
