@@ -1,6 +1,7 @@
 package com.example.employeedirectory;
 
 import com.example.employeedirectory.model.Employee;
+import com.example.employeedirectory.model.EmployeeNode;
 import java.io.IOException;
 import java.util.List;
 
@@ -31,6 +32,41 @@ public class Main {
             
             for (Employee employee : employees) {
                 System.out.println(employee);
+            }
+            
+            System.out.println("\n" + "=".repeat(50) + "\n");
+            
+            // Build and display the employee tree
+            EmployeeTree employeeTree = new EmployeeTree();
+            employeeTree.buildTree(employees);
+            
+            System.out.println("Tree Statistics:");
+            System.out.println("Total employees: " + employeeTree.getTotalEmployeeCount());
+            System.out.println("Root nodes (top-level managers): " + employeeTree.getRootNodeCount());
+            System.out.println();
+            
+            // Print the tree structure
+            employeeTree.printTree();
+            
+            // Demonstrate some tree operations
+            System.out.println("\n" + "=".repeat(50) + "\n");
+            System.out.println("Tree Operations Examples:");
+            System.out.println();
+            
+            // Example: Get direct reports of Joe Doe (ID: 123)
+            List<EmployeeNode> joeDirectReports = employeeTree.getDirectReports("123");
+            System.out.println("Direct reports of Joe Doe (ID: 123):");
+            for (EmployeeNode report : joeDirectReports) {
+                Employee emp = report.getEmployee();
+                System.out.println("  - " + emp.getFirstName() + " " + emp.getLastName() + " (ID: " + emp.getId() + ")");
+            }
+            
+            // Example: Get all subordinates of Joe Doe
+            List<EmployeeNode> joeAllSubordinates = employeeTree.getAllSubordinates("123");
+            System.out.println("\nAll subordinates of Joe Doe (ID: 123):");
+            for (EmployeeNode subordinate : joeAllSubordinates) {
+                Employee emp = subordinate.getEmployee();
+                System.out.println("  - " + emp.getFirstName() + " " + emp.getLastName() + " (ID: " + emp.getId() + ")");
             }
             
         } catch (IOException e) {
