@@ -81,18 +81,13 @@ This automatically includes all dependencies and is the easiest way to run the a
 mvn exec:java -Dexec.mainClass="com.example.employeedirectory.Main" -Dexec.args="employees.csv"
 ```
 
-### Alternative: Using Java with Full Classpath
-If you prefer using `java` directly, you need to include all dependencies:
+### Alternative: Using Java with Fat JAR
+If you prefer using `java` directly, create a fat JAR with all dependencies included:
 
 ```bash
-# Build classpath with dependencies
-mvn dependency:build-classpath -Dmdep.outputFile=classpath.txt
-
-# Run with full classpath (Windows)
-java -cp target/classes;@classpath.txt com.example.employeedirectory.Main employees.csv
-
-# Run with full classpath (Linux/Mac)
-java -cp target/classes:@classpath.txt com.example.employeedirectory.Main employees.csv
+# Create fat JAR with all dependencies
+mvn package
+java -jar target/java-project-1.0.0.jar employees.csv
 ```
 
 
