@@ -2,6 +2,8 @@ package com.example.employeedirectory;
 
 import com.example.employeedirectory.model.Employee;
 import com.example.employeedirectory.model.EmployeeNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -10,6 +12,8 @@ import java.util.*;
  * This class focuses only on tree structure and navigation, not business logic.
  */
 public class EmployeeTree {
+    private static final Logger logger = LoggerFactory.getLogger(EmployeeTree.class);
+    
     private List<EmployeeNode> rootNodes;
     private Map<String, EmployeeNode> employeeNodeMap;
     
@@ -48,7 +52,7 @@ public class EmployeeTree {
                     parentNode.addChild(node);
                 } else {
                     // Manager not found, treat as root node
-                    System.err.println("Warning: Manager with ID " + managerId + " not found for employee " + employee.getId());
+                    logger.warn("Manager with ID {} not found for employee {}", managerId, employee.getId());
                     rootNodes.add(node);
                 }
             }
@@ -100,11 +104,11 @@ public class EmployeeTree {
      * Prints the tree structure in a hierarchical format.
      */
     public void printTree() {
-        System.out.println("Employee Tree Structure:");
-        System.out.println("========================");
+        logger.debug("Employee Tree Structure:");
+        logger.debug("========================");
         
         if (rootNodes.isEmpty()) {
-            System.out.println("No employees found.");
+            logger.debug("No employees found.");
             return;
         }
         
@@ -122,8 +126,9 @@ public class EmployeeTree {
         String indent = "  ".repeat(depth);
         Employee employee = node.getEmployee();
         
-        System.out.println(indent + "├─ " + employee.getFirstName() + " " + employee.getLastName() + 
-                          " (ID: " + employee.getId() + ", Salary: $" + employee.getSalary() + ")");
+        logger.debug("{}├─ {} {} (ID: {}, Salary: ${})", 
+                    indent, employee.getFirstName(), employee.getLastName(), 
+                    employee.getId(), employee.getSalary());
         
         List<EmployeeNode> children = node.getChildren();
         for (int i = 0; i < children.size(); i++) {

@@ -287,11 +287,13 @@ class EmployeeValidatorTest {
     @Test
     void testValidationResult_ConstructorAndGetters() {
         // Arrange & Act
-        EmployeeValidator.ValidationResult result = new EmployeeValidator.ValidationResult(false, "Test message", 100.5);
+        Employee testEmployee = new Employee("1", "Test", "Employee", 50000.0, null);
+        EmployeeValidator.ValidationResult result = new EmployeeValidator.ValidationResult(false, "Test message", 100.5, testEmployee);
 
         // Assert
         assertFalse(result.isValid());
         assertEquals("Test message", result.getMessage());
         assertEquals(100.5, result.getAmount(), 0.01);
+        assertEquals(testEmployee, result.getEmployee());
     }
 } 

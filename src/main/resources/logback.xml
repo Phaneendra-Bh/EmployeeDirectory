@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Console appender for all output -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- Console appender for validation reports (always shown) -->
+    <appender name="VALIDATION_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- Logger for validation reports - always INFO level -->
+    <logger name="com.example.employeedirectory.service.ValidationReportService" level="INFO" additivity="false">
+        <appender-ref ref="VALIDATION_CONSOLE"/>
+    </logger>
+    
+    <!-- Logger for debug information - controlled by system property -->
+    <logger name="com.example.employeedirectory" level="${debug.level:-WARN}" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+    
+    <!-- Root logger -->
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration> 

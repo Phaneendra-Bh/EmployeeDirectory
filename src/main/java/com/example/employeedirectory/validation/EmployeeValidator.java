@@ -35,16 +35,19 @@ public class EmployeeValidator {
         private final boolean isValid;
         private final String message;
         private final double amount; // For salary differences, depth violations, etc.
+        private final Employee employee; // The employee this validation result is for
         
-        public ValidationResult(boolean isValid, String message, double amount) {
+        public ValidationResult(boolean isValid, String message, double amount, Employee employee) {
             this.isValid = isValid;
             this.message = message;
             this.amount = amount;
+            this.employee = employee;
         }
         
         public boolean isValid() { return isValid; }
         public String getMessage() { return message; }
         public double getAmount() { return amount; }
+        public Employee getEmployee() { return employee; }
     }
     
     /**
@@ -53,7 +56,7 @@ public class EmployeeValidator {
     public static SalaryValidationRule createMinimumSalaryRule() {
         return (manager, directReports) -> {
             if (directReports.isEmpty()) {
-                return new ValidationResult(true, "No direct reports to validate", 0.0);
+                return new ValidationResult(true, "No direct reports to validate", 0.0, manager);
             }
             
             double averageSubordinateSalary = calculateAverageSalary(directReports);
@@ -61,11 +64,11 @@ public class EmployeeValidator {
             double managerSalary = manager.getSalary();
             
             if (managerSalary >= minRequiredSalary) {
-                return new ValidationResult(true, "Manager meets minimum salary requirement", 0.0);
+                return new ValidationResult(true, "Manager meets minimum salary requirement", 0.0, manager);
             } else {
                 double shortfall = minRequiredSalary - managerSalary;
                 return new ValidationResult(false, 
-                    "Manager is underpaid", shortfall);
+                    "Manager is underpaid", shortfall, manager);
             }
         };
     }
@@ -76,7 +79,7 @@ public class EmployeeValidator {
     public static SalaryValidationRule createMaximumSalaryRule() {
         return (manager, directReports) -> {
             if (directReports.isEmpty()) {
-                return new ValidationResult(true, "No direct reports to validate", 0.0);
+                return new ValidationResult(true, "No direct reports to validate", 0.0, manager);
             }
             
             double averageSubordinateSalary = calculateAverageSalary(directReports);
@@ -84,11 +87,11 @@ public class EmployeeValidator {
             double managerSalary = manager.getSalary();
             
             if (managerSalary <= maxAllowedSalary) {
-                return new ValidationResult(true, "Manager meets maximum salary requirement", 0.0);
+                return new ValidationResult(true, "Manager meets maximum salary requirement", 0.0, manager);
             } else {
                 double excess = managerSalary - maxAllowedSalary;
                 return new ValidationResult(false, 
-                    "Manager is overpaid", excess);
+                    "Manager is overpaid", excess, manager);
             }
         };
     }
@@ -100,11 +103,11 @@ public class EmployeeValidator {
         return (employeeNode) -> {
             int depth = employeeNode.getDepth();
             if (depth <= 4) {
-                return new ValidationResult(true, "Acceptable reporting depth", 0.0);
+                return new ValidationResult(true, "Acceptable reporting depth", 0.0, employeeNode.getEmployee());
             } else {
                 int levelsTooDeep = depth - 4;
                 return new ValidationResult(false, 
-                    "Reporting line too deep", levelsTooDeep);
+                    "Reporting line too deep", levelsTooDeep, employeeNode.getEmployee());
             }
         };
     }
